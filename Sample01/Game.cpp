@@ -14,11 +14,11 @@ using Microsoft::WRL::ComPtr;
 
 Game::Game() noexcept(false)
 {
-    m_deviceResources = std::make_unique<DX::DeviceResources>(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,DXGI_FORMAT_D32_FLOAT,2,D3D_FEATURE_LEVEL_11_0, 0);
+    m_deviceResources = std::make_unique<DX::DeviceResources>(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,DXGI_FORMAT_D32_FLOAT,2,D3D_FEATURE_LEVEL_11_0, 0);
     m_deviceResources->RegisterDeviceNotify(this);
 
 
-    m_intermediateRT = std::make_unique<DX::RenderTexture>(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
+    m_intermediateRT = std::make_unique<DX::RenderTexture>(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
      XMVECTORF32 color;
      color.v = XMColorSRGBToRGB(Colors::CornflowerBlue);
      m_intermediateRT->SetClearColor(color);
@@ -104,7 +104,7 @@ void Game::Render()
 
     Clear();
 
-    // TODO: Add your rendering code here.
+    //draw something
     {
         ID3D12DescriptorHeap* heaps[] = { m_resourceDescriptors->Heap() };
         commandList->SetDescriptorHeaps(_countof(heaps), heaps);
@@ -125,6 +125,7 @@ void Game::Render()
 
     m_intermediateRT->EndScene(commandList);
 
+	//render post process RT into backbuffer
     auto rtvDescriptor = m_deviceResources->GetRenderTargetView();
     commandList->OMSetRenderTargets(1, &rtvDescriptor, FALSE, nullptr);
     ID3D12DescriptorHeap* heaps[] = { m_resourceDescriptors->Heap() };
@@ -269,7 +270,7 @@ void Game::CreateDeviceDependentResources()
     }
 
     {
-        RenderTargetState rtState(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, DXGI_FORMAT_D32_FLOAT);
+        RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, DXGI_FORMAT_D32_FLOAT);
 
         SpriteBatchPipelineStateDescription pd(rtState);
         m_spriteBatch = std::make_unique<SpriteBatch>(device, resourceUpload, pd);
@@ -302,16 +303,6 @@ void Game::CreateDeviceDependentResources()
     m_fullscreenRect.right = m_deviceResources->GetWidth();
     m_fullscreenRect.bottom = m_deviceResources->GetHeight();
 
-
-//     {
-// 
-//         std::unique_ptr<BasicPostProcess> postProcess;
-// 
-//         RenderTargetState rtState(m_deviceResources->GetBackBufferFormat(),
-//             m_deviceResources->GetDepthBufferFormat());
-// 
-//         postProcess = std::make_unique<BasicPostProcess>(device, rtState, BasicPostProcess::Sepia);
-//     }
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
